@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "ELIA WhatsApp Extension by Yann Szilagyi",
+  "description": "Melhore mensagens do WhatsApp Web com ChatGPT-4o",
+  "version": "1.2507",
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "https://web.whatsapp.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/logo-elite-jpg-16x16.jpg",
+      "48": "icons/logo-elite-jpg-48x48.jpg",
+      "128": "icons/logo-elite-jpg-128x128.jpg"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://web.whatsapp.com/*"],
+      "js": ["content.js"]
+    }
+  ]
+}

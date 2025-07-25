@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>ELIA - WhatsApp Extension</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div id="elia-popup" class="container">
+    <img src="../icons/icon128.png" class="logo" />
+    <h2>ELIA IA - Configuração</h2>
+    <label for="apiKey">Sua chave API OpenAI:</label>
+    <input type="password" id="apiKey" placeholder="sk-..." autocomplete="off" />
+    <button id="saveKeyBtn">Salvar Chave</button>
+    <div id="statusMsg" class="status"></div>
+    <hr>
+    <button id="removeKeyBtn">Remover Chave</button>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

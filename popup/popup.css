@@ -1,0 +1,54 @@
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #f4f7fa;
+    margin: 0;
+    padding: 0;
+    width: 280px;
+}
+
+.container {
+    text-align: center;
+    padding: 18px 12px;
+}
+
+.logo {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 12px;
+}
+
+h2 {
+    font-size: 18px;
+    margin-bottom: 16px;
+    color: #0466c8;
+}
+
+input[type="password"] {
+    width: 90%;
+    padding: 8px;
+    font-size: 14px;
+    margin-bottom: 10px;
+    border: 1px solid #bfc7d1;
+    border-radius: 6px;
+}
+
+button {
+    background: #0466c8;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 24px;
+    font-size: 15px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+button:hover {
+    background: #024383;
+}
+
+.status {
+    margin-top: 10px;
+    color: #008200;
+    font-size: 14px;
+    min-height: 18px;
+}
