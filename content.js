@@ -1,16 +1,9 @@
 (function() {
-  // ===== VARIÁVEIS GLOBAIS CRM =====
-  let eliaCategories = JSON.parse(localStorage.getItem('eliaAbasCRM') || '["Tudo","Urgente","Clientes"]');
-  let eliaCatsMap = JSON.parse(localStorage.getItem('eliaCatsMap') || '{}');  // { id: [categoria] }
-  let lastEliaCatFilter = "Tudo";  // Sempre começa em "Tudo"
+  // ===== VARIÁVEIS GLOBAIS ====
+  // Todas variáveis sobre abas CRM/remover!
+  // LIMPO!
 
-  // ======= FUNÇÃO DE SUPORTE: ID ÚNICO PARA CADA CARD =========
-  function getCardId(card){
-    // Atenção para pegar SOMENTE dos cards de conversa. Não use texto geral!
-    return card.getAttribute('data-id') || card.getAttribute('aria-label') || (card.innerText || "").slice(0, 80);
-  }
-
-  // ===== ESCONDER BARRA PADRÃO DO WA =====
+  // ====== ESCONDER BARRA PADRÃO DO WA =====
   function hideWABar() {
     let navs = document.querySelectorAll('div[tabindex="0"]');
     if (navs.length > 0 && navs[0].offsetWidth < 150) {
@@ -19,7 +12,7 @@
     }
   }
 
-  // ===== BARRA LATERAL CRM CUSTOMIZADA =====
+  // ===== BARRA LATERAL CUSTOMIZADA (só ícones na esquerda) =====
   function createFakeSidebar() {
     if (document.getElementById('elia-sidebar-crm')) return;
     const sidebar = document.createElement('div');
@@ -39,7 +32,6 @@
       { label: 'Meta AI', icon: '🌀', id: 'crm-metaai', idx: 4 },
       { label: 'ELIA IA', icon: '🧠', id: 'crm-eliaia' }
     ];
-
     menuItems.forEach((item) => {
       const btn = document.createElement('button');
       btn.innerHTML = `<span style="font-size:23px;">${item.icon}</span>`;
@@ -64,6 +56,7 @@
       }
       sidebar.appendChild(btn);
     });
+
     const sep = document.createElement('div');
     sep.style.flexGrow = 1;
     sidebar.appendChild(sep);
@@ -77,24 +70,7 @@
     configBtn.onclick = () => alert('Em breve: configurações da extensão!');
     sidebar.appendChild(configBtn);
 
-    const addCatBtn = document.createElement('button');
-    addCatBtn.innerHTML = '<span style="font-size:18px;">➕</span>';
-    addCatBtn.title = "Adicionar nova aba CRM";
-    Object.assign(addCatBtn.style, {
-      background: 'linear-gradient(135deg, #25d366, #128c7e)',
-      color: '#fff', border: 'none', margin: '0 0 22px 0', cursor: 'pointer',
-      width: '46px', height: '46px', fontWeight: "bold", fontSize: "17px",
-      borderRadius: '14px', boxShadow: "0 2px 10px #27d3a940"
-    });
-    addCatBtn.onclick = () => {
-      const novo = prompt("Nome da nova aba CRM:");
-      if (novo && novo.trim().length > 1) {
-        eliaCategories.push(novo.trim());
-        localStorage.setItem('eliaAbasCRM', JSON.stringify(eliaCategories));
-        insertAbasCRM();
-      }
-    };
-    sidebar.appendChild(addCatBtn);
+    // --- Removido botão de adicionar aba CRM! ---
 
     document.body.appendChild(sidebar);
   }
@@ -229,158 +205,7 @@
     if (grid) grid.scrollTop = 0;
   }
 
-  // ===== ABAS CRM (FILTRO) =====
-  function insertAbasCRM() {
-    const existing = document.getElementById('elia-aba-CRM');
-    if (existing) existing.remove();
-    const customTabs = document.createElement('div');
-    customTabs.id = "elia-aba-CRM";
-    Object.assign(customTabs.style, {
-      display: "flex", gap: "9px", padding: "10px 0 8px 11px",
-      background: "#f9f9fa", borderBottom: "1px solid #EDF0F3",
-      position: 'fixed', left: '62px', top: '0', right: '0', zIndex: '99990'
-    });
-    eliaCategories.forEach((name, idx) => {
-      const btn = document.createElement('button');
-      btn.className = "elia-aba-btn";
-      btn.textContent = name;
-      Object.assign(btn.style, {
-        border: "none", padding: "5px 15px",
-        borderRadius: "17px", background: "#e7f6ee", color: "#128c7e",
-        cursor: "pointer", fontWeight: "bold", fontSize: "14px"
-      });
-      btn.onclick = function () {
-        lastEliaCatFilter = name;
-        filterAndTagChats();
-      };
-      btn.oncontextmenu = function(ev) {
-        ev.preventDefault();
-        const novoNome = prompt("Renomear aba (em branco para excluir):", name);
-        if (novoNome === null) return;
-        if (novoNome.trim() === "") {
-          eliaCategories.splice(idx, 1);
-        } else {
-          eliaCategories[idx] = novoNome.trim();
-        }
-        localStorage.setItem('eliaAbasCRM', JSON.stringify(eliaCategories));
-        insertAbasCRM();
-      };
-      customTabs.appendChild(btn);
-    });
-    // Botão nova aba
-    const addBtn = document.createElement('button');
-    addBtn.textContent = "+";
-    addBtn.title = "Adicionar nova aba";
-    Object.assign(addBtn.style, {
-      border: "none", background: "#eafff2", color: "#128c7e",
-      fontWeight: "bold", borderRadius: "17px", padding: "5px 14px",
-      cursor: "pointer", fontSize: "15px"
-    });
-    addBtn.onclick = function() {
-      const novo = prompt("Nome da nova aba:");
-      if (novo && novo.length > 1) {
-        eliaCategories.push(novo.trim());
-        localStorage.setItem('eliaAbasCRM', JSON.stringify(eliaCategories));
-        insertAbasCRM();
-      }
-    };
-    customTabs.appendChild(addBtn);
-    let mainPanel = document.querySelector('[role="presentation"] [role="grid"]');
-    if (mainPanel && mainPanel.parentNode) {
-      mainPanel.parentNode.insertBefore(customTabs, mainPanel);
-    } else {
-      document.body.appendChild(customTabs); // fallback
-    }
-  }
-
-  // ===== FILTRO / MARCAÇÃO DE CARDS CONVERSAS =====
-  function filterAndTagChats() {
-    // Pegue apenas cards da lista de conversas!
-    let cards = Array.from(document.querySelectorAll('div[aria-rowindex][role="row"]'))
-      .filter(card => card.closest('[role="grid"]'));
-    cards.forEach(card => {
-      if (!card.getAttribute('elia-cat-ready')) {
-        card.setAttribute('elia-cat-ready', 'true');
-        card.addEventListener('contextmenu', function(ev){
-          ev.preventDefault(); ev.stopPropagation();
-          let id = getCardId(card);
-          showCategoryContextMenu(ev.pageX, ev.pageY, id, card);
-        });
-      }
-      // Remove tags antigas antes de redesenhar
-      let oldTags = card.querySelectorAll('.elia-cat-tag');
-      oldTags.forEach(tag=>tag.remove());
-      // Coloque tags das categorias associadas
-      let id = getCardId(card);
-      let tags = (eliaCatsMap[id] || []);
-      if (tags.length > 0) {
-        tags.forEach(cat => {
-          const tag = document.createElement('span');
-          tag.innerText = cat;
-          tag.className = "elia-cat-tag";
-          Object.assign(tag.style, {
-            background: '#eafff2', color: "#129583", borderRadius: "10px",
-            fontSize: "10px", padding: "2px 7px", margin: "0 2px", marginLeft:"5px"
-          });
-          let target = card.querySelector('span[dir="auto"]');
-          if (target) target.parentNode.appendChild(tag);
-        });
-      }
-    });
-    // Filtro exibe/esconde dos cards (NÃO mexe na tela de mensagens!!)
-    cards.forEach(card => {
-      let id = getCardId(card);
-      if (lastEliaCatFilter === "Tudo") {
-        card.style.display = '';
-      } else {
-        let marcado = (eliaCatsMap[id] || []).includes(lastEliaCatFilter);
-        card.style.display = marcado ? '' : 'none';
-      }
-    });
-  }
-
-  // ===== MENU CONTEXTO PARA MARCAR ABAS =====
-  function showCategoryContextMenu(x, y, id, card) {
-    let menu = document.getElementById('elia-catmenu');
-    if (menu) menu.remove();
-    menu = document.createElement('div');
-    menu.id = 'elia-catmenu';
-    Object.assign(menu.style,
-      {position: 'fixed', left: x + 'px', top: y + 'px', background: '#fff',
-       border: '1.2px solid #c5f5df', borderRadius: '7px', zIndex: 22222,
-       boxShadow: '0 0 16px #88e8c977', padding: '8px', minWidth: '144px'});
-    menu.innerHTML = "<b style='color:#099'>Marcar nesta aba:</b><br><br>";
-    eliaCategories.filter(e=>e!=="Tudo").forEach(cat => {
-      const opt = document.createElement('div');
-      opt.innerText = cat;
-      opt.style.cursor = 'pointer'; opt.style.padding = "3px 7px";
-      opt.style.borderRadius = "6px";
-      opt.onmouseenter = () => opt.style.background = "#e7f7ee";
-      opt.onmouseleave = () => opt.style.background = "none";
-      opt.onclick = () => {
-        eliaCatsMap[id] = eliaCatsMap[id] || [];
-        if (!eliaCatsMap[id].includes(cat)) eliaCatsMap[id].push(cat);
-        localStorage.setItem('eliaCatsMap', JSON.stringify(eliaCatsMap));
-        menu.remove();
-        setTimeout(filterAndTagChats, 80);
-      };
-      menu.appendChild(opt);
-    });
-    // Desmarcar todas categorias
-    const desmark = document.createElement('div');
-    desmark.innerText = 'Desmarcar todas';
-    desmark.style.color = "#c00"; desmark.style.cursor = "pointer";
-    desmark.onclick = () => {
-      eliaCatsMap[id] = [];
-      localStorage.setItem('eliaCatsMap', JSON.stringify(eliaCatsMap));
-      menu.remove();
-      setTimeout(filterAndTagChats, 80);
-    };
-    menu.appendChild(document.createElement('hr')); menu.appendChild(desmark);
-    document.body.appendChild(menu);
-    setTimeout(()=>menu.focus(),50);
-    setTimeout(()=>window.onclick=()=>menu.remove(),65);
-  }
+  // === Removido código das Abas CRM ===
 
   // ==== BOTÃO "MELHORAR ELIA" (PROFISSIONAL) ====
   function getWppInputBox() {
@@ -487,7 +312,6 @@
       if (location.href !== lastHref) {
         lastHref = location.href;
         setTimeout(() => {
-          insertAbasCRM();
           addImproveButton();
         }, 900);
       }
@@ -497,10 +321,9 @@
   setTimeout(() => {
     hideWABar();
     createFakeSidebar();
-    insertAbasCRM();
     addImproveButton();
     observeAndAutoInsert();
-    setInterval(filterAndTagChats, 1400);
+    // Removido setInterval(filterAndTagChats...)
   }, 800);
 
 })();
